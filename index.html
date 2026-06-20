@@ -1,0 +1,2750 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ProduceProductivity</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #fdf0e8;
+      --surface: #f5e0d0;
+      --surface2: #edddd2;
+      --border: #d4b5a8;
+      --accent: #b5635a;
+      --accent-light: #c97a72;
+      --accent-dim: rgba(181,99,90,0.12);
+      --green: #6a8f6e;
+      --red: #b94040;
+      --orange: #c07840;
+      --yellow: #a8853a;
+      --text: #3e2018;
+      --muted: #8a6558;
+      --radius: 12px;
+    }
+
+    body {
+      font-family: 'Times New Roman', Times, serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: grid;
+      grid-template-columns: 260px 1fr;
+      grid-template-rows: auto 1fr;
+    }
+
+    /* ── Header ── */
+    header {
+      grid-column: 1 / -1;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 16px 28px;
+      border-bottom: 1px solid var(--border);
+      background: var(--surface);
+    }
+    .logo { font-size: 20px; font-weight: 700; color: var(--accent-light); letter-spacing: -0.5px; }
+    .logo span { color: var(--text); }
+    .header-right { display: flex; gap: 12px; align-items: center; }
+    .date-display { color: var(--muted); font-size: 13px; }
+    .btn-sm {
+      background: var(--accent-dim);
+      border: 1px solid var(--accent);
+      color: var(--accent-light);
+      padding: 6px 14px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 500;
+      transition: background 0.15s;
+    }
+    .btn-sm:hover { background: rgba(124,108,248,0.3); }
+
+    /* ── Sidebar ── */
+    sidebar {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      padding: 24px 16px;
+      border-right: 1px solid var(--border);
+      background: var(--surface);
+    }
+
+    .sidebar-section { display: flex; flex-direction: column; gap: 8px; }
+    .sidebar-label { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; color: var(--muted); padding: 0 8px; }
+
+    nav a {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 12px;
+      border-radius: 8px;
+      cursor: pointer;
+      color: var(--muted);
+      text-decoration: none;
+      font-size: 14px;
+      font-weight: 500;
+      transition: all 0.15s;
+    }
+    nav a:hover { background: var(--surface2); color: var(--text); }
+    nav a.active { background: var(--accent-dim); color: var(--accent-light); }
+    nav a .icon { font-size: 16px; width: 20px; text-align: center; }
+
+    /* Stats mini */
+    .stat-pill {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .stat-pill .label { font-size: 11px; color: var(--muted); }
+    .stat-pill .val { font-size: 20px; font-weight: 700; color: var(--text); }
+    .stat-pill .sub { font-size: 11px; color: var(--green); }
+
+    /* Quote box */
+    .quote-box {
+      background: var(--accent-dim);
+      border: 1px solid var(--accent);
+      border-radius: 10px;
+      padding: 14px;
+      font-size: 12px;
+      line-height: 1.6;
+      color: var(--accent-light);
+      font-style: italic;
+    }
+    .quote-author { margin-top: 6px; font-size: 11px; color: var(--muted); font-style: normal; }
+
+    /* ── Main ── */
+    main {
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+      overflow-y: auto;
+    }
+
+    .panel { display: none; flex-direction: column; gap: 24px; padding: 28px; animation: fadeIn 0.2s ease; }
+    .panel.active { display: flex; }
+
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+
+    h2 { font-size: 22px; font-weight: 700; color: var(--text); }
+    h3 { font-size: 15px; font-weight: 600; color: var(--text); }
+    p.sub { font-size: 13px; color: var(--muted); margin-top: 2px; }
+
+    /* ── Pomodoro ── */
+    .pomo-wrap {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 28px;
+      padding: 32px 0;
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* ── Produce silhouettes ── */
+    .produce-bg {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      z-index: 0;
+    }
+    .ps {
+      position: absolute;
+      line-height: 1;
+      user-select: none;
+      color: transparent;
+      -webkit-text-stroke: 1.5px rgba(80, 55, 40, 0.38);
+    }
+    .pomo-wrap > *:not(.produce-bg) { position: relative; z-index: 1; }
+
+    /* ── Flip Clock ── */
+    .flip-clock {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .fc-wrap {
+      position: relative;
+      width: 88px;
+      height: 108px;
+      perspective: 500px;
+    }
+
+    .fc-panel {
+      position: absolute;
+      left: 0; right: 0;
+      height: 54px;
+      overflow: hidden;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+    }
+    .fc-panel-top {
+      top: 0;
+      border-radius: 10px 10px 0 0;
+      border-bottom: 1.5px solid var(--border);
+      background: linear-gradient(to bottom, var(--surface) 60%, color-mix(in srgb, var(--surface) 80%, black));
+    }
+    .fc-panel-bottom {
+      bottom: 0;
+      border-radius: 0 0 10px 10px;
+      background: linear-gradient(to top, var(--surface) 60%, color-mix(in srgb, var(--surface) 80%, black));
+    }
+
+    .fc-num {
+      position: absolute;
+      left: 0; right: 0;
+      height: 108px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 82px;
+      font-family: 'Times New Roman', Times, serif;
+      font-weight: 700;
+      color: var(--text);
+      letter-spacing: -2px;
+      user-select: none;
+    }
+    .fc-panel-top    .fc-num { top: 0; }
+    .fc-panel-bottom .fc-num { bottom: 0; }
+
+    /* Animated panels */
+    .fc-anim { z-index: 10; }
+    .fc-anim-top {
+      transform-origin: center bottom;
+      animation: fcFlipTop 0.28s cubic-bezier(0.4, 0, 1, 1) forwards;
+    }
+    .fc-anim-top::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(to bottom, transparent 40%, rgba(0,0,0,0.18));
+      border-radius: inherit;
+      pointer-events: none;
+    }
+    .fc-anim-bottom {
+      transform-origin: center top;
+      transform: rotateX(90deg);
+      animation: fcFlipBottom 0.28s cubic-bezier(0, 0, 0.6, 1) forwards;
+    }
+    .fc-anim-bottom::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(to top, transparent 40%, rgba(0,0,0,0.14));
+      border-radius: inherit;
+      pointer-events: none;
+    }
+
+    @keyframes fcFlipTop {
+      0%   { transform: rotateX(0deg); }
+      100% { transform: rotateX(-90deg); }
+    }
+    @keyframes fcFlipBottom {
+      0%   { transform: rotateX(90deg); }
+      100% { transform: rotateX(0deg); }
+    }
+
+    .fc-colon {
+      font-size: 64px;
+      font-family: 'Times New Roman', Times, serif;
+      font-weight: 700;
+      color: var(--text);
+      line-height: 1;
+      margin: 0 2px;
+      margin-top: -8px;
+    }
+
+    .pomo-session-label { font-size: 13px; color: var(--muted); margin-top: 4px; letter-spacing: 0.5px; }
+
+    .pomo-controls { display: flex; gap: 12px; }
+    .btn-pomo {
+      width: 52px; height: 52px;
+      border-radius: 50%;
+      border: none;
+      cursor: pointer;
+      font-size: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: transform 0.1s;
+    }
+    .btn-pomo:active { transform: scale(0.93); }
+    .btn-pomo.primary { background: var(--accent); color: #fff; width: 60px; height: 60px; font-size: 24px; }
+    .btn-pomo.secondary { background: var(--surface2); color: var(--muted); border: 1px solid var(--border); }
+
+    .pomo-session-count {
+      display: flex;
+      gap: 6px;
+      align-items: center;
+    }
+    .pomo-dot {
+      width: 10px; height: 10px;
+      border-radius: 50%;
+      background: var(--border);
+      transition: background 0.3s;
+    }
+    .pomo-dot.done { background: var(--accent); }
+
+    .pomo-current-task {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 14px 18px;
+      font-size: 13px;
+      color: var(--muted);
+      min-width: 280px;
+      text-align: center;
+    }
+    .pomo-current-task.has-task { color: var(--text); border-color: var(--accent); }
+
+    .pomo-durations {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 12px 20px;
+    }
+    .dur-field { display: flex; flex-direction: column; align-items: center; gap: 4px; }
+    .dur-field label { font-size: 10px; text-transform: uppercase; letter-spacing: 0.6px; color: var(--muted); }
+    .dur-input-wrap { display: flex; align-items: center; gap: 4px; }
+    .dur-input-wrap input {
+      width: 52px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 5px 8px;
+      color: var(--text);
+      font-size: 15px;
+      font-family: inherit;
+      font-weight: 600;
+      text-align: center;
+      outline: none;
+      transition: border-color 0.15s;
+    }
+    .dur-input-wrap input:focus { border-color: var(--accent); }
+    .dur-unit { font-size: 11px; color: var(--muted); }
+    .dur-sep { color: var(--border); font-size: 18px; padding: 0 2px; }
+
+    /* ── Tasks ── */
+    .task-input-row {
+      display: flex;
+      gap: 10px;
+    }
+    .task-input-row input, .task-input-row select {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 10px 14px;
+      color: var(--text);
+      font-size: 14px;
+      outline: none;
+      transition: border-color 0.15s;
+    }
+    .task-input-row input { flex: 1; }
+    .task-input-row input:focus, .task-input-row select:focus { border-color: var(--accent); }
+    .task-input-row select { cursor: pointer; }
+    .task-input-row select option { background: var(--surface); }
+
+    .btn-add {
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      padding: 10px 18px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: background 0.15s;
+    }
+    .btn-add:hover { background: var(--accent-light); }
+
+    .task-filters {
+      display: flex;
+      gap: 8px;
+    }
+    .filter-btn {
+      padding: 6px 14px;
+      border-radius: 20px;
+      border: 1px solid var(--border);
+      background: transparent;
+      color: var(--muted);
+      font-size: 12px;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .filter-btn.active { background: var(--accent-dim); border-color: var(--accent); color: var(--accent-light); }
+
+    .task-list { display: flex; flex-direction: column; gap: 8px; }
+
+    .task-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 14px 16px;
+      transition: all 0.15s;
+      animation: fadeIn 0.2s ease;
+    }
+    .task-item:hover { border-color: var(--accent); }
+    .task-item.done { opacity: 0.5; }
+    .task-item.done .task-text { text-decoration: line-through; }
+
+    .task-check {
+      width: 20px; height: 20px;
+      border-radius: 50%;
+      border: 2px solid var(--border);
+      cursor: pointer;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.15s;
+    }
+    .task-check:hover { border-color: var(--accent); }
+    .task-check.checked { background: var(--green); border-color: var(--green); }
+    .task-check.checked::after { content: '✓'; color: #0f0f13; font-size: 12px; font-weight: 700; }
+
+    .task-text { flex: 1; font-size: 14px; }
+    .task-meta { display: flex; gap: 8px; align-items: center; }
+
+    .priority-dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+    .priority-dot.high { background: var(--red); }
+    .priority-dot.medium { background: var(--orange); }
+    .priority-dot.low { background: var(--green); }
+
+    .tag {
+      font-size: 11px;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-weight: 500;
+    }
+    .tag.high { background: rgba(248,113,113,0.15); color: var(--red); }
+    .tag.medium { background: rgba(251,146,60,0.15); color: var(--orange); }
+    .tag.low { background: rgba(74,222,128,0.15); color: var(--green); }
+
+    .task-pomo-btn {
+      font-size: 14px;
+      cursor: pointer;
+      background: none;
+      border: none;
+      color: var(--muted);
+      padding: 4px;
+      border-radius: 4px;
+      transition: color 0.15s;
+    }
+    .task-pomo-btn:hover { color: var(--accent-light); }
+    .task-del-btn {
+      font-size: 14px;
+      cursor: pointer;
+      background: none;
+      border: none;
+      color: var(--muted);
+      padding: 4px;
+      border-radius: 4px;
+      transition: color 0.15s;
+    }
+    .task-del-btn:hover { color: var(--red); }
+
+    .empty-state {
+      text-align: center;
+      padding: 48px 24px;
+      color: var(--muted);
+      font-size: 14px;
+    }
+    .empty-state .emoji { font-size: 40px; margin-bottom: 12px; }
+
+    /* ── Habits ── */
+    .habit-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 14px;
+    }
+    .habit-card {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 16px;
+      cursor: pointer;
+      transition: all 0.15s;
+      user-select: none;
+    }
+    .habit-card:hover { border-color: var(--accent); }
+    .habit-card.done { border-color: var(--green); background: rgba(74,222,128,0.08); }
+    .habit-emoji { font-size: 28px; margin-bottom: 8px; }
+    .habit-name { font-size: 14px; font-weight: 600; }
+    .habit-streak { font-size: 12px; color: var(--muted); margin-top: 4px; }
+    .habit-streak .fire { color: var(--orange); }
+
+    .habit-add-row {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .habit-add-row input {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 10px 14px;
+      color: var(--text);
+      font-size: 14px;
+      outline: none;
+      flex: 1;
+      min-width: 160px;
+      transition: border-color 0.15s;
+    }
+    .habit-add-row input:focus { border-color: var(--accent); }
+
+    /* ── Stats ── */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+      gap: 14px;
+    }
+    .stats-card {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 20px;
+    }
+    .stats-card .label { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; }
+    .stats-card .value { font-size: 36px; font-weight: 700; margin: 8px 0 4px; }
+    .stats-card .trend { font-size: 12px; color: var(--green); }
+
+    .heatmap-row {
+      display: flex;
+      gap: 4px;
+      flex-wrap: wrap;
+    }
+    .heatmap-cell {
+      width: 16px; height: 16px;
+      border-radius: 3px;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      transition: background 0.2s;
+    }
+    .heatmap-cell.l1 { background: rgba(124,108,248,0.2); }
+    .heatmap-cell.l2 { background: rgba(124,108,248,0.45); }
+    .heatmap-cell.l3 { background: rgba(124,108,248,0.7); }
+    .heatmap-cell.l4 { background: var(--accent); }
+
+    .section-card {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .progress-bar-wrap { display: flex; flex-direction: column; gap: 6px; }
+    .progress-bar-label { display: flex; justify-content: space-between; font-size: 13px; }
+    .progress-bar-label .name { color: var(--text); }
+    .progress-bar-label .pct { color: var(--muted); }
+    .progress-bar-bg { background: var(--border); border-radius: 4px; height: 6px; }
+    .progress-bar-fill { background: var(--accent); border-radius: 4px; height: 6px; transition: width 0.5s ease; }
+
+    /* ── Responsive ── */
+    @media (max-width: 700px) {
+      body { grid-template-columns: 1fr; }
+      sidebar { display: none; }
+      .pomo-ring-wrap { width: 200px; height: 200px; }
+      .pomo-digits { font-size: 40px; }
+    }
+
+    /* ── Login ── */
+    #loginOverlay {
+      position: fixed;
+      inset: 0;
+      background: var(--bg);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 9999;
+      padding: 20px;
+    }
+    .login-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      padding: 40px 36px;
+      width: 100%;
+      max-width: 400px;
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+      box-shadow: 0 24px 64px rgba(0,0,0,0.12);
+    }
+    .login-logo { font-size: 26px; font-weight: 700; color: var(--accent); text-align: center; }
+    .login-logo span { color: var(--text); }
+    .login-subtitle { text-align: center; color: var(--muted); font-size: 13px; margin-top: -10px; }
+    .login-tabs {
+      display: flex;
+      gap: 4px;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 4px;
+    }
+    .login-tab {
+      flex: 1;
+      padding: 8px;
+      border-radius: 7px;
+      border: none;
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--muted);
+      background: transparent;
+      font-family: inherit;
+      transition: all 0.15s;
+    }
+    .login-tab.active { background: var(--accent); color: #fff; }
+    .login-form { display: flex; flex-direction: column; gap: 13px; }
+    .login-field { display: flex; flex-direction: column; gap: 5px; }
+    .login-field label { font-size: 10px; text-transform: uppercase; letter-spacing: 0.7px; color: var(--muted); }
+    .login-field input {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 11px 14px;
+      color: var(--text);
+      font-size: 15px;
+      font-family: inherit;
+      outline: none;
+      transition: border-color 0.15s;
+    }
+    .login-field input:focus { border-color: var(--accent); }
+    .login-error {
+      background: rgba(185,64,64,0.1);
+      border: 1px solid var(--red);
+      border-radius: 8px;
+      padding: 10px 14px;
+      font-size: 12px;
+      color: var(--red);
+      display: none;
+    }
+    .login-submit {
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      padding: 13px;
+      font-size: 15px;
+      font-weight: 600;
+      font-family: inherit;
+      cursor: pointer;
+      transition: background 0.15s;
+      margin-top: 2px;
+    }
+    .login-submit:hover { background: var(--accent-light); }
+    .login-footer { text-align: center; font-size: 11px; color: var(--muted); }
+    .user-badge {
+      display: none;
+      align-items: center;
+      gap: 7px;
+      font-size: 13px;
+      color: var(--muted);
+    }
+    .user-avatar {
+      width: 26px; height: 26px;
+      border-radius: 50%;
+      background: var(--accent-dim);
+      border: 1px solid var(--accent);
+      color: var(--accent);
+      font-size: 12px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .btn-signout {
+      background: rgba(185,64,64,0.1);
+      border: 1px solid var(--red);
+      color: var(--red);
+      padding: 6px 12px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 12px;
+      font-family: inherit;
+      display: none;
+      transition: background 0.15s;
+    }
+    .btn-signout:hover { background: rgba(185,64,64,0.2); }
+    .creator-toggle {
+      text-align: center;
+      font-size: 12px;
+      color: var(--muted);
+      cursor: pointer;
+      padding: 4px;
+      border-radius: 6px;
+      transition: color 0.15s;
+      user-select: none;
+    }
+    .creator-toggle:hover { color: var(--yellow); }
+    .creator-divider {
+      height: 1px;
+      background: var(--border);
+      margin: 4px 0;
+    }
+    .creator-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 11px;
+      background: rgba(168,133,58,0.15);
+      border: 1px solid var(--yellow);
+      color: var(--yellow);
+      border-radius: 6px;
+      padding: 3px 8px;
+    }
+
+    /* ── Music Widget ── */
+    .music-widget { display: flex; flex-direction: column; gap: 7px; }
+
+    .music-url-row { display: flex; gap: 6px; }
+    .music-url-row input {
+      flex: 1;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 7px;
+      padding: 7px 10px;
+      color: var(--text);
+      font-size: 11px;
+      font-family: inherit;
+      outline: none;
+      min-width: 0;
+      transition: border-color 0.15s;
+    }
+    .music-url-row input:focus { border-color: var(--accent); }
+    .music-url-row input::placeholder { color: var(--muted); font-size: 10px; }
+
+    .music-connect-btn {
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      border-radius: 7px;
+      padding: 0 10px;
+      font-size: 13px;
+      cursor: pointer;
+      flex-shrink: 0;
+      transition: background 0.15s;
+    }
+    .music-connect-btn:hover { background: var(--accent-light); }
+
+    .music-file-label {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      cursor: pointer;
+      font-size: 11px;
+      color: var(--muted);
+      padding: 5px 8px;
+      border: 1px dashed var(--border);
+      border-radius: 7px;
+      transition: all 0.15s;
+    }
+    .music-file-label:hover { border-color: var(--accent); color: var(--accent); }
+
+    #musicPlayerWrap iframe,
+    #musicPlayerWrap audio {
+      width: 100%;
+      border-radius: 8px;
+      display: block;
+      margin-top: 4px;
+    }
+    .music-disconnect {
+      font-size: 10px;
+      color: var(--muted);
+      cursor: pointer;
+      text-align: right;
+      padding: 2px 0;
+      transition: color 0.15s;
+    }
+    .music-disconnect:hover { color: var(--red); }
+
+    /* Notification toast */
+    #toast {
+      position: fixed;
+      bottom: 28px;
+      left: 50%;
+      transform: translateX(-50%) translateY(80px);
+      background: var(--surface);
+      border: 1px solid var(--accent);
+      color: var(--text);
+      padding: 12px 22px;
+      border-radius: 30px;
+      font-size: 14px;
+      font-weight: 500;
+      box-shadow: 0 8px 30px rgba(0,0,0,0.4);
+      transition: transform 0.3s ease;
+      z-index: 999;
+      white-space: nowrap;
+    }
+    #toast.show { transform: translateX(-50%) translateY(0); }
+
+    /* ── Intro Story ── */
+    #introOverlay {
+      position: fixed;
+      inset: 0;
+      background: var(--bg);
+      z-index: 8500;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 40px 24px;
+      animation: fadeIn 0.5s ease;
+    }
+    .intro-scene {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 36px;
+      max-width: 580px;
+      width: 100%;
+      text-align: center;
+    }
+    .intro-logo {
+      font-size: 14px;
+      font-family: 'Times New Roman', serif;
+      font-weight: 700;
+      color: var(--muted);
+      letter-spacing: 3px;
+      text-transform: uppercase;
+    }
+    .intro-logo span { color: var(--border); }
+    .intro-progress {
+      display: flex;
+      gap: 6px;
+      align-items: center;
+    }
+    .intro-dot {
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: var(--border);
+      transition: background 0.3s;
+    }
+    .intro-dot.active { background: var(--accent); }
+    .intro-dot.past   { background: var(--muted); }
+    .intro-lines {
+      min-height: 120px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .intro-line {
+      font-family: 'Times New Roman', serif;
+      font-size: 24px;
+      color: var(--text);
+      line-height: 1.65;
+      animation: introLineFade 0.4s ease forwards;
+    }
+    .intro-line.dim  { color: var(--muted); font-size: 19px; }
+    .intro-line.bold { font-size: 28px; color: var(--accent); font-weight: 700; }
+    @keyframes introLineFade { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+
+    .intro-next-btn {
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      font-family: 'Times New Roman', serif;
+      font-size: 16px;
+      padding: 13px 36px;
+      border-radius: 40px;
+      cursor: pointer;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.4s ease, background 0.2s;
+    }
+    .intro-next-btn.visible { opacity: 1; pointer-events: auto; }
+    .intro-next-btn:hover { background: var(--accent-light); }
+
+    .intro-skip-btn {
+      position: absolute;
+      top: 20px;
+      right: 24px;
+      background: none;
+      border: none;
+      color: var(--muted);
+      font-family: 'Times New Roman', serif;
+      font-size: 13px;
+      cursor: pointer;
+      transition: color 0.2s;
+    }
+    .intro-skip-btn:hover { color: var(--text); }
+
+    /* ── Garden Choice Modal ── */
+    #gardenChoiceModal {
+      position: fixed;
+      inset: 0;
+      background: rgba(62,32,24,0.45);
+      backdrop-filter: blur(4px);
+      z-index: 7000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      animation: fadeIn 0.25s ease;
+    }
+    .garden-choice-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      padding: 36px 32px;
+      max-width: 340px;
+      width: 100%;
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+      animation: fadeIn 0.3s ease;
+    }
+    .garden-choice-icon { font-size: 48px; line-height: 1; }
+    .garden-choice-title { font-size: 20px; font-weight: 700; color: var(--text); }
+    .garden-choice-text  { font-size: 13px; color: var(--muted); line-height: 1.6; }
+    .garden-choice-btns  { display: flex; flex-direction: column; gap: 8px; margin-top: 6px; }
+    .garden-go-btn   { padding: 12px; font-size: 15px; }
+    .garden-skip-btn {
+      background: none;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 10px;
+      font-size: 13px;
+      color: var(--muted);
+      cursor: pointer;
+      font-family: inherit;
+      transition: all 0.15s;
+    }
+    .garden-skip-btn:hover { border-color: var(--accent); color: var(--text); }
+
+    /* ── Garden Overlay ── */
+    #gardenOverlay {
+      position: fixed;
+      inset: 0;
+      z-index: 6000;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      background: #d4ede8;
+      animation: fadeIn 0.4s ease;
+    }
+    .garden-top-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 24px;
+      background: rgba(255,255,255,0.6);
+      backdrop-filter: blur(6px);
+      border-bottom: 1px solid rgba(0,0,0,0.08);
+      z-index: 2;
+    }
+    .garden-title { font-size: 18px; font-weight: 700; color: #2d4a2d; font-family: 'Times New Roman', serif; }
+    .garden-picks-left { font-size: 14px; color: #4a7c59; font-weight: 600; }
+    .leave-garden-btn {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 8px 16px;
+      font-size: 13px;
+      font-family: inherit;
+      color: var(--text);
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .leave-garden-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+    .garden-sky {
+      position: relative;
+      height: 90px;
+      background: linear-gradient(to bottom, #b8e0f0, #d4ede8);
+      flex-shrink: 0;
+    }
+    .garden-sun { position: absolute; top: 12px; right: 60px; font-size: 32px; animation: sunFloat 6s ease-in-out infinite; }
+    .garden-cloud { position: absolute; font-size: 28px; animation: cloudDrift 18s linear infinite; opacity: 0.9; }
+    .garden-cloud.c1 { top: 18px; left: -80px; animation-duration: 22s; }
+    .garden-cloud.c2 { top: 36px; left: -120px; animation-duration: 30s; animation-delay: -10s; font-size: 20px; }
+    @keyframes sunFloat { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-5px); } }
+    @keyframes cloudDrift { from { transform: translateX(0); } to { transform: translateX(calc(100vw + 120px)); } }
+
+    .garden-ground {
+      flex: 1;
+      background: linear-gradient(to bottom, #5a9e6a 0%, #4a8a58 30%, #7a5c3a 30%, #6b4f2e 100%);
+      display: flex;
+      align-items: flex-start;
+      justify-content: center;
+      padding: 28px 16px 16px;
+      overflow-y: auto;
+    }
+
+    .garden-plots {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+      gap: 16px;
+      max-width: 700px;
+      width: 100%;
+    }
+
+    .plant-card {
+      background: rgba(255,255,255,0.88);
+      border: 2px solid rgba(90,158,106,0.4);
+      border-radius: 14px;
+      padding: 16px 10px 12px;
+      text-align: center;
+      cursor: pointer;
+      transition: transform 0.15s, box-shadow 0.15s, border-color 0.15s;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+      position: relative;
+      overflow: hidden;
+    }
+    .plant-card:hover { transform: translateY(-4px) scale(1.04); box-shadow: 0 8px 20px rgba(0,0,0,0.15); border-color: #5a9e6a; }
+    .plant-card.picked { opacity: 0.4; cursor: default; pointer-events: none; }
+    .plant-card.picking { animation: plantPick 0.5s ease forwards; }
+    @keyframes plantPick {
+      0%   { transform: scale(1); }
+      40%  { transform: scale(1.3) rotate(-8deg); }
+      100% { transform: scale(0) rotate(20deg); opacity: 0; }
+    }
+    .plant-card.empty {
+      background: rgba(120,80,40,0.15);
+      border-color: rgba(120,80,40,0.2);
+      cursor: default;
+      pointer-events: none;
+    }
+    .plant-emoji-big { font-size: 36px; line-height: 1; }
+    .plant-card-name { font-size: 11px; font-weight: 600; color: #3a5a3a; }
+    .plant-card-hint { font-size: 10px; color: #7a9a7a; }
+    .plant-soil { font-size: 10px; margin-top: 2px; }
+
+    .garden-basket {
+      background: rgba(255,255,255,0.85);
+      border-top: 1px solid rgba(0,0,0,0.08);
+      padding: 12px 24px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      flex-wrap: wrap;
+      min-height: 58px;
+    }
+    .basket-label { font-size: 13px; font-weight: 600; color: #3a5a3a; flex-shrink: 0; }
+    .basket-items { display: flex; gap: 8px; flex-wrap: wrap; }
+    .basket-item {
+      font-size: 26px;
+      animation: basketPop 0.4s cubic-bezier(0.34,1.56,0.64,1) forwards;
+    }
+    @keyframes basketPop { from { transform: scale(0) rotate(-15deg); opacity: 0; } to { transform: scale(1) rotate(0); opacity: 1; } }
+
+    /* ── Kitchen ── */
+    .kitchen-recipe-card {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .kitchen-dish-header {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+    .dish-big-emoji {
+      font-size: 52px;
+      line-height: 1;
+      filter: drop-shadow(0 2px 4px rgba(0,0,0,0.15));
+    }
+    .dish-name { font-size: 20px; font-weight: 700; color: var(--text); }
+    .dish-desc { font-size: 13px; color: var(--muted); margin-top: 3px; }
+    .dish-next-hint { font-size: 12px; color: var(--accent); margin-top: 5px; font-style: italic; }
+
+    .ing-slots {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .ing-slot {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 5px;
+      width: 72px;
+      padding: 12px 6px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      transition: all 0.2s;
+    }
+    .ing-slot.earned {
+      border-color: var(--accent);
+      background: var(--accent-dim);
+    }
+    .ing-slot.just-earned {
+      animation: ingredientPop 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+    }
+    @keyframes ingredientPop {
+      0%   { transform: scale(0.5) rotate(-8deg); opacity: 0; }
+      60%  { transform: scale(1.15) rotate(4deg); }
+      100% { transform: scale(1) rotate(0deg); opacity: 1; }
+    }
+
+    .ing-emoji { font-size: 28px; line-height: 1; }
+    .ing-name  { font-size: 10px; color: var(--muted); text-align: center; line-height: 1.2; }
+    .ing-slot.earned .ing-name { color: var(--text); }
+
+    .ing-unknown { font-size: 22px; color: var(--border); }
+
+    .kitchen-progress-text {
+      font-size: 13px;
+      color: var(--muted);
+      text-align: center;
+    }
+
+    .kitchen-complete {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+      padding: 24px 0;
+      text-align: center;
+    }
+    .kitchen-complete h3 { font-size: 20px; }
+    .kitchen-complete p { font-size: 14px; color: var(--muted); }
+
+    .menu-list { display: flex; flex-direction: column; gap: 8px; margin-top: 14px; }
+    .menu-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 14px;
+      border-radius: 8px;
+      font-size: 14px;
+      border: 1px solid transparent;
+      transition: all 0.15s;
+    }
+    .menu-item.done    { background: var(--accent-dim); border-color: var(--accent); color: var(--text); }
+    .menu-item.current { background: rgba(160,130,58,0.12); border-color: var(--yellow); color: var(--text); }
+    .menu-item.locked  { color: var(--muted); }
+
+    .menu-emoji { font-size: 20px; }
+    .menu-name  { flex: 1; }
+    .menu-status { font-size: 14px; }
+
+    .restaurant-building {
+      font-size: 48px;
+      text-align: center;
+      margin: 4px 0 10px;
+      filter: drop-shadow(0 2px 6px rgba(0,0,0,0.1));
+      transition: all 0.5s;
+    }
+  </style>
+</head>
+<body>
+
+<!-- ── Login Overlay ── -->
+<div id="loginOverlay">
+  <div class="login-card">
+    <div class="login-logo">Produce<span>Productivity</span></div>
+    <div class="login-subtitle story-text" data-story="Your focus kitchen awaits. Sign in to begin."></div>
+
+    <div class="login-tabs">
+      <button class="login-tab active" onclick="switchLoginTab('signin', this)">Sign In</button>
+      <button class="login-tab" onclick="switchLoginTab('register', this)">Create Account</button>
+    </div>
+
+    <div id="loginError" class="login-error"></div>
+
+    <div class="login-form">
+      <div class="login-field">
+        <label>Username</label>
+        <input type="text" id="loginUsername" placeholder="Enter username" autocomplete="username"
+          onkeydown="if(event.key==='Enter')document.getElementById('loginPassword').focus()" />
+      </div>
+      <div class="login-field">
+        <label>Password</label>
+        <input type="password" id="loginPassword" placeholder="Enter password" autocomplete="current-password"
+          onkeydown="if(event.key==='Enter')submitLogin()" />
+      </div>
+      <button class="login-submit" id="loginSubmitBtn" onclick="submitLogin()">Sign In</button>
+    </div>
+
+    <div class="login-footer">🔒 Credentials are stored on this device only.</div>
+
+    <div class="creator-toggle" onclick="toggleCreatorPortal()">👑 Creator Portal</div>
+
+    <!-- Creator portal panel -->
+    <div id="creatorPortal" style="display:none">
+      <div class="creator-divider"></div>
+      <div id="creatorForm" class="login-form">
+        <div class="login-field">
+          <label id="creatorPinLabel">Creator PIN</label>
+          <input type="password" id="creatorPin" maxlength="8" placeholder="Enter your PIN"
+            onkeydown="if(event.key==='Enter')submitCreator()" inputmode="numeric" />
+        </div>
+        <div id="creatorPin2Wrap" class="login-field" style="display:none">
+          <label>Confirm PIN</label>
+          <input type="password" id="creatorPin2" maxlength="8" placeholder="Confirm PIN"
+            onkeydown="if(event.key==='Enter')submitCreator()" inputmode="numeric" />
+        </div>
+        <div id="creatorError" class="login-error"></div>
+        <button class="login-submit" id="creatorSubmitBtn" onclick="submitCreator()">Enter</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<header>
+  <div class="logo">Produce<span>Productivity</span></div>
+  <div class="header-right">
+    <span class="date-display" id="dateDisplay"></span>
+    <div class="user-badge" id="userBadge">
+      <div class="user-avatar" id="userAvatar"></div>
+      <span id="userDisplay"></span>
+    </div>
+    <button class="btn-sm" onclick="resetDay()">Reset Day</button>
+    <button class="btn-signout" id="logoutBtn" onclick="logout()">Sign out</button>
+  </div>
+</header>
+
+<sidebar>
+  <div class="sidebar-section">
+    <div class="sidebar-label">Menu</div>
+    <nav>
+      <a class="active" onclick="showPanel('pomodoro', this)"><span class="icon">🍅</span> Produce</a>
+      <a onclick="showPanel('tasks', this)"><span class="icon">🥙</span> Tasks</a>
+      <a onclick="showPanel('habits', this)"><span class="icon">🧆</span> Habits</a>
+      <a onclick="showPanel('stats', this)"><span class="icon">🍷</span> Statistics</a>
+      <a onclick="showPanel('kitchen', this)"><span class="icon"><i class="fas fa-fish"></i></span> Kitchen</a>
+      <a id="creatorGardenTab" style="display:none" onclick="openCreatorGarden()"><span class="icon">🌱</span> Garden</a>
+    </nav>
+  </div>
+
+  <div class="sidebar-section">
+    <div class="sidebar-label">Today</div>
+    <div class="stat-pill">
+      <div>
+        <div class="label">Focus time</div>
+        <div class="val" id="side-focus">0m</div>
+      </div>
+      <div class="sub" id="side-sessions">0 sessions</div>
+    </div>
+    <div class="stat-pill">
+      <div>
+        <div class="label">Tasks done</div>
+        <div class="val" id="side-tasks">0</div>
+      </div>
+      <div class="sub" id="side-tasks-pct">0%</div>
+    </div>
+  </div>
+
+  <div class="sidebar-section">
+    <div class="sidebar-label">🎵 Music</div>
+    <div class="music-widget">
+      <div class="music-url-row">
+        <input type="text" id="musicUrl" placeholder="Spotify, YouTube, or SoundCloud link…" onkeydown="if(event.key==='Enter')connectMusic()" />
+        <button class="music-connect-btn" onclick="connectMusic()" title="Connect">▶</button>
+      </div>
+      <label class="music-file-label">
+        <input type="file" id="musicFile" accept="audio/*" onchange="loadLocalMusic(this)" style="display:none" />
+        <span>🎧 Play local file</span>
+      </label>
+      <div id="musicPlayerWrap"></div>
+    </div>
+  </div>
+
+  <div class="sidebar-section" style="margin-top:auto">
+    <div class="quote-box" id="quoteBox">
+      Loading quote...
+      <div class="quote-author" id="quoteAuthor"></div>
+    </div>
+  </div>
+</sidebar>
+
+<main>
+
+  <!-- ── Pomodoro Panel ── -->
+  <div class="panel active" id="panel-pomodoro">
+    <div>
+      <h2>Produce Timer</h2>
+      <p class="sub story-text" id="produceSubtitle"></p>
+    </div>
+    <div class="pomo-wrap">
+
+      <!-- produce silhouettes -->
+      <div class="produce-bg" aria-hidden="true">
+        <span class="ps" style="font-size:42px;top:-4px;left:2%">🍅</span>
+        <span class="ps" style="font-size:29px;top:10px;left:14%">🥒</span>
+        <span class="ps" style="font-size:36px;top:-4px;right:4%">🧅</span>
+        <span class="ps" style="font-size:26px;top:12px;right:16%">🌿</span>
+        <span class="ps" style="font-size:39px;top:38%;left:-4px">🍆</span>
+        <span class="ps" style="font-size:26px;top:52%;left:8%">🥬</span>
+        <span class="ps" style="font-size:36px;top:36%;right:-2px">🍋</span>
+        <span class="ps" style="font-size:23px;top:55%;right:7%">🫑</span>
+        <span class="ps" style="font-size:31px;bottom:4px;left:6%">🧄</span>
+        <span class="ps" style="font-size:39px;bottom:-4px;left:42%">🥕</span>
+        <span class="ps" style="font-size:29px;bottom:8px;right:8%">🫒</span>
+        <span class="ps" style="font-size:23px;top:28%;left:22%">🥜</span>
+        <span class="ps" style="font-size:26px;top:30%;right:20%">🍯</span>
+      </div>
+
+      <div class="flip-clock">
+        <div class="fc-wrap" id="fc0">
+          <div class="fc-panel fc-panel-top fc-static-top"><div class="fc-num">2</div></div>
+          <div class="fc-panel fc-panel-bottom fc-static-bot"><div class="fc-num">2</div></div>
+        </div>
+        <div class="fc-wrap" id="fc1">
+          <div class="fc-panel fc-panel-top fc-static-top"><div class="fc-num">5</div></div>
+          <div class="fc-panel fc-panel-bottom fc-static-bot"><div class="fc-num">5</div></div>
+        </div>
+        <div class="fc-colon">:</div>
+        <div class="fc-wrap" id="fc2">
+          <div class="fc-panel fc-panel-top fc-static-top"><div class="fc-num">0</div></div>
+          <div class="fc-panel fc-panel-bottom fc-static-bot"><div class="fc-num">0</div></div>
+        </div>
+        <div class="fc-wrap" id="fc3">
+          <div class="fc-panel fc-panel-top fc-static-top"><div class="fc-num">0</div></div>
+          <div class="fc-panel fc-panel-bottom fc-static-bot"><div class="fc-num">0</div></div>
+        </div>
+      </div>
+      <div class="pomo-session-label" id="pomoLabel">Focus Session</div>
+
+      <div class="pomo-controls">
+        <button class="btn-pomo primary" id="pomoPlayBtn" onclick="toggleTimer()">▶</button>
+      </div>
+
+      <div class="pomo-session-count" id="pomoDots"></div>
+
+      <div class="pomo-current-task" id="pomoCurrentTask">
+        No task selected — pick one from Tasks
+      </div>
+
+      <div class="pomo-durations">
+        <div class="dur-field">
+          <label for="durWork">Focus</label>
+          <div class="dur-input-wrap">
+            <input type="number" id="durWork" min="1" max="120" value="25" onchange="updateDuration('work', this.value)" />
+            <span class="dur-unit">min</span>
+          </div>
+        </div>
+        <div class="dur-sep">·</div>
+        <div class="dur-field">
+          <label for="durShort">Short break</label>
+          <div class="dur-input-wrap">
+            <input type="number" id="durShort" min="1" max="60" value="5" onchange="updateDuration('short', this.value)" />
+            <span class="dur-unit">min</span>
+          </div>
+        </div>
+        <div class="dur-sep">·</div>
+        <div class="dur-field">
+          <label for="durLong">Long break</label>
+          <div class="dur-input-wrap">
+            <input type="number" id="durLong" min="1" max="60" value="15" onchange="updateDuration('long', this.value)" />
+            <span class="dur-unit">min</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Tasks Panel ── -->
+  <div class="panel" id="panel-tasks">
+    <div>
+      <h2>Tasks</h2>
+      <p class="sub story-text" data-story="Chef's note: write it down before it slips away. Your mise en place starts here."></p>
+    </div>
+
+    <div class="task-input-row">
+      <input type="text" id="taskInput" placeholder="Add a new task…" onkeydown="if(event.key==='Enter')addTask()" />
+      <select id="taskPriority">
+        <option value="medium">Medium</option>
+        <option value="high">High</option>
+        <option value="low">Low</option>
+      </select>
+      <button class="btn-add" onclick="addTask()">+ Add</button>
+    </div>
+
+    <div class="task-filters">
+      <button class="filter-btn active" onclick="setFilter('all', this)">All</button>
+      <button class="filter-btn" onclick="setFilter('active', this)">Active</button>
+      <button class="filter-btn" onclick="setFilter('done', this)">Done</button>
+      <button class="filter-btn" onclick="setFilter('high', this)">🔴 High</button>
+    </div>
+
+    <div class="task-list" id="taskList"></div>
+  </div>
+
+  <!-- ── Habits Panel ── -->
+  <div class="panel" id="panel-habits">
+    <div>
+      <h2>Daily Habits</h2>
+      <p class="sub story-text" data-story="Every great kitchen runs on ritual. Tend these daily — they season who you become."></p>
+    </div>
+
+    <div class="habit-add-row">
+      <input type="text" id="habitInput" placeholder="New habit name…" onkeydown="if(event.key==='Enter')addHabit()" />
+      <input type="text" id="habitEmoji" placeholder="Emoji" style="width:80px" maxlength="2" />
+      <button class="btn-add" onclick="addHabit()">+ Add</button>
+    </div>
+
+    <div class="habit-grid" id="habitGrid"></div>
+  </div>
+
+  <!-- ── Stats Panel ── -->
+  <div class="panel" id="panel-stats">
+    <div>
+      <h2>Statistics</h2>
+      <p class="sub story-text" data-story="The numbers don't lie. Here's how hard you've been cooking."></p>
+    </div>
+
+    <div class="stats-grid">
+      <div class="stats-card">
+        <div class="label">Total Focus Hours</div>
+        <div class="value" id="stat-hours" style="color:var(--accent)">0</div>
+        <div class="trend">all time</div>
+      </div>
+      <div class="stats-card">
+        <div class="label">Sessions Completed</div>
+        <div class="value" id="stat-sessions" style="color:var(--green)">0</div>
+        <div class="trend">all time</div>
+      </div>
+      <div class="stats-card">
+        <div class="label">Tasks Completed</div>
+        <div class="value" id="stat-tasks" style="color:var(--orange)">0</div>
+        <div class="trend">all time</div>
+      </div>
+      <div class="stats-card">
+        <div class="label">Habit Streak</div>
+        <div class="value" id="stat-streak" style="color:var(--yellow)">0</div>
+        <div class="trend">days</div>
+      </div>
+    </div>
+
+    <div class="section-card">
+      <h3>Activity Heatmap (last 60 days)</h3>
+      <div class="heatmap-row" id="heatmapRow"></div>
+      <div style="display:flex;gap:6px;align-items:center;font-size:11px;color:var(--muted)">
+        Less
+        <div class="heatmap-cell"></div>
+        <div class="heatmap-cell l1"></div>
+        <div class="heatmap-cell l2"></div>
+        <div class="heatmap-cell l3"></div>
+        <div class="heatmap-cell l4"></div>
+        More
+      </div>
+    </div>
+
+    <div class="section-card">
+      <h3>Task Completion by Priority</h3>
+      <div id="priorityBars"></div>
+    </div>
+  </div>
+
+
+  <!-- ── Kitchen Panel ── -->
+  <div class="panel" id="panel-kitchen">
+    <div>
+      <h2>Kitchen</h2>
+      <p class="sub story-text" data-story="Every session you finish earns you something real. Keep going — your restaurant won't open itself."></p>
+    </div>
+
+    <div class="kitchen-recipe-card" id="kitchenRecipeCard"></div>
+
+    <div class="section-card">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:4px">
+        <span style="font-size:22px">🏪</span>
+        <h3>Your Restaurant</h3>
+      </div>
+      <div id="restaurantProgress"></div>
+    </div>
+  </div>
+
+</main>
+
+<!-- ── Intro Story Overlay ── -->
+<div id="introOverlay" style="display:none">
+  <button class="intro-skip-btn" onclick="dismissIntro()">Skip →</button>
+  <div class="intro-scene">
+    <div class="intro-logo">Produce<span>Productivity</span></div>
+    <div class="intro-progress" id="introDots"></div>
+    <div class="intro-lines" id="introLines"></div>
+    <button class="intro-next-btn" id="introNextBtn" onclick="introNext()">Next →</button>
+  </div>
+</div>
+
+<!-- ── Garden Choice Modal ── -->
+<div id="gardenChoiceModal" style="display:none">
+  <div class="garden-choice-card">
+    <div class="garden-choice-icon" id="gardenChoiceIcon">🌿</div>
+    <div class="garden-choice-title" id="gardenChoiceTitle">Break time!</div>
+    <div class="garden-choice-text" id="gardenChoiceText">Visit the garden while you rest?</div>
+    <div class="garden-choice-btns">
+      <button class="btn-add garden-go-btn" onclick="openGarden()">Visit Garden 🌱</button>
+      <button class="garden-skip-btn" onclick="closeGardenChoice()">Not now</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── Garden Overlay ── -->
+<div id="gardenOverlay" style="display:none">
+  <div class="garden-top-bar">
+    <div class="garden-title">🌿 Garden</div>
+    <div class="garden-picks-left">Pick <span id="gardenPickCount">2</span> ingredient<span id="gardenPickS">s</span></div>
+    <button class="leave-garden-btn" onclick="leaveGarden()">Leave Garden →</button>
+  </div>
+  <div class="garden-sky">
+    <div class="garden-sun">☀️</div>
+    <div class="garden-cloud c1">☁️</div>
+    <div class="garden-cloud c2">☁️</div>
+  </div>
+  <div class="garden-ground">
+    <div class="garden-plots" id="gardenPlots"></div>
+  </div>
+  <div class="garden-basket" id="gardenBasket">
+    <div class="basket-label">🧺 Harvested</div>
+    <div class="basket-items" id="basketItems"></div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+// ─────────────────────────────────────────
+//  State
+// ─────────────────────────────────────────
+const TODAY = new Date().toDateString();
+
+function load(key, def) {
+  try { const v = localStorage.getItem(key); return v ? JSON.parse(v) : def; } catch { return def; }
+}
+function save(key, val) { localStorage.setItem(key, JSON.stringify(val)); }
+
+// Returns a user-namespaced key so each account has isolated data
+function ukey(k) { return currentUser ? k + '_u_' + currentUser : k; }
+
+let tasks   = [];
+let habits  = [];
+let stats   = { totalMinutes: 0, totalSessions: 0, totalTasksDone: 0, maxStreak: 0, history: {} };
+let currentFilter = 'all';
+let currentTaskId = null;
+
+function loadUserData() {
+  tasks  = load(ukey('ff_tasks'), []);
+  habits = load(ukey('ff_habits'), []);
+  if (!habits.length) {
+    habits = [
+      { id: uid(), name: 'Exercise',    emoji: '🥑', streak: 0, doneToday: false, lastDate: '' },
+      { id: uid(), name: 'Read',        emoji: '🍋', streak: 0, doneToday: false, lastDate: '' },
+      { id: uid(), name: 'Meditate',    emoji: '🫐', streak: 0, doneToday: false, lastDate: '' },
+      { id: uid(), name: 'Drink Water', emoji: '🥤', streak: 0, doneToday: false, lastDate: '' },
+    ];
+    save(ukey('ff_habits'), habits);
+  }
+  stats = load(ukey('ff_stats'), { totalMinutes: 0, totalSessions: 0, totalTasksDone: 0, maxStreak: 0, history: {} });
+  pSessionsToday = load(ukey('ff_pomo_sessions_today'), { date: TODAY, count: 0 });
+  if (pSessionsToday.date !== TODAY) { pSessionsToday = { date: TODAY, count: 0 }; save(ukey('ff_pomo_sessions_today'), pSessionsToday); }
+  kitchen = load(ukey('ff_kitchen'), { dishIdx: 0, earned: [], completed: [] });
+  if (typeof kitchen.earned === 'number') {
+    kitchen.earned = Array.from({ length: kitchen.earned }, (_, i) => i);
+    save(ukey('ff_kitchen'), kitchen);
+  }
+  lastEarnedIdx = -1;
+  renderTasks();
+  renderHabits();
+  renderKitchen();
+  updateSidebar();
+  renderDots();
+}
+
+function uid() { return Math.random().toString(36).slice(2,10); }
+
+// ─────────────────────────────────────────
+//  Navigation
+// ─────────────────────────────────────────
+function showPanel(id, el) {
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('nav a').forEach(a => a.classList.remove('active'));
+  document.getElementById('panel-' + id).classList.add('active');
+  if (el) el.classList.add('active');
+  if (id === 'stats') renderStats();
+  if (id === 'pomodoro') {
+    const el = document.getElementById('produceSubtitle');
+    el.dataset.story = getProduceLine();
+  }
+  setTimeout(typeActivePanel, 60);
+}
+
+// ─────────────────────────────────────────
+//  Pomodoro
+// ─────────────────────────────────────────
+const MODES = { work: 25*60, short: 5*60, long: 15*60 };
+const LABELS = { work: 'Focus Session', short: 'Short Break ☕', long: 'Long Break 🌿' };
+const RING_COLORS = { work: '#b5635a', short: '#6a8f6e', long: '#a8853a' };
+
+function updateDuration(mode, val) {
+  const mins = Math.max(1, parseInt(val) || 1);
+  MODES[mode] = mins * 60;
+  // If we're currently in this mode and not running, reset to new duration
+  if (pMode === mode && !pRunning) {
+    pTotal = MODES[mode];
+    pRemaining = pTotal;
+    renderRing();
+  }
+}
+
+let pMode      = 'work';
+let pTotal     = MODES.work;
+let pRemaining = pTotal;
+let pRunning   = false;
+let pInterval  = null;
+let pSessionsToday = { date: TODAY, count: 0 };
+
+function applyMode(mode) {
+  pMode = mode;
+  pTotal = MODES[mode];
+  pRemaining = pTotal;
+  document.getElementById('pomoLabel').textContent = LABELS[mode];
+  initClock();
+}
+
+function toggleTimer() {
+  if (pRunning) {
+    clearInterval(pInterval);
+    pRunning = false;
+    document.getElementById('pomoPlayBtn').textContent = '▶';
+  } else {
+    pRunning = true;
+    document.getElementById('pomoPlayBtn').textContent = '⏸';
+    pInterval = setInterval(() => {
+      pRemaining--;
+      renderClock();
+      if (pRemaining <= 0) {
+        clearInterval(pInterval);
+        pRunning = false;
+        document.getElementById('pomoPlayBtn').textContent = '▶';
+        onSessionEnd();
+      }
+    }, 1000);
+  }
+}
+
+function resetTimer() {
+  clearInterval(pInterval);
+  pRunning = false;
+  applyMode('work');
+  pSessionsToday.count = 0;
+  save(ukey('ff_pomo_sessions_today'), pSessionsToday);
+  renderDots();
+  updateSidebar();
+}
+
+function skipSession() { onSessionEnd(); }
+
+function onSessionEnd() {
+  if (pMode === 'work') {
+    pSessionsToday.count++;
+    save(ukey('ff_pomo_sessions_today'), pSessionsToday);
+    stats.totalSessions++;
+    stats.totalMinutes += 25;
+    const day = new Date().toISOString().slice(0,10);
+    stats.history[day] = (stats.history[day] || 0) + 25;
+    save(ukey('ff_stats'), stats);
+    updateSidebar();
+    renderDots();
+    const nextMode = pSessionsToday.count % 4 === 0 ? 'long' : 'short';
+    const breakLen = nextMode === 'long' ? '15 min' : '5 min';
+    showToast(`Session done! Break starting…`);
+    setTimeout(() => { applyMode(nextMode); toggleTimer(); }, 1500);
+    setTimeout(() => showGardenChoice({
+      icon: nextMode === 'long' ? '🌻' : '🌿',
+      title: `${breakLen} break!`,
+      text: 'Your break has started. Want to visit the garden and pick some ingredients while you rest?',
+      picks: nextMode === 'long' ? 3 : 2,
+    }), 2000);
+  } else {
+    renderDots();
+    showToast('Break over — starting focus session!');
+    setTimeout(() => { applyMode('work'); toggleTimer(); }, 1500);
+  }
+  renderRing();
+}
+
+let prevDigits = [null, null, null, null];
+
+function getDigitValues() {
+  const m = Math.floor(pRemaining / 60);
+  const s = pRemaining % 60;
+  return [
+    String(Math.floor(m / 10)),
+    String(m % 10),
+    String(Math.floor(s / 10)),
+    String(s % 10)
+  ];
+}
+
+function initClock() {
+  const digits = getDigitValues();
+  digits.forEach((d, i) => {
+    const card = document.getElementById('fc' + i);
+    card.querySelector('.fc-static-top .fc-num').textContent = d;
+    card.querySelector('.fc-static-bot .fc-num').textContent = d;
+    card.querySelectorAll('.fc-anim').forEach(el => el.remove());
+    prevDigits[i] = d;
+  });
+  updateTitle();
+}
+
+function renderClock() {
+  const digits = getDigitValues();
+  digits.forEach((d, i) => {
+    if (d !== prevDigits[i]) {
+      triggerFlip(i, prevDigits[i], d);
+      prevDigits[i] = d;
+    }
+  });
+  updateTitle();
+}
+
+function triggerFlip(idx, oldVal, newVal) {
+  const card = document.getElementById('fc' + idx);
+  card.querySelectorAll('.fc-anim').forEach(el => el.remove());
+
+  // Static top jumps to new value immediately — hidden behind anim-top during fold
+  card.querySelector('.fc-static-top .fc-num').textContent = newVal;
+
+  // Top card: shows old value, folds down 0→-90°
+  const animTop = document.createElement('div');
+  animTop.className = 'fc-panel fc-panel-top fc-anim fc-anim-top';
+  animTop.innerHTML = `<div class="fc-num">${oldVal ?? newVal}</div>`;
+  card.appendChild(animTop);
+
+  // After top fold, start bottom unfold showing new value
+  setTimeout(() => {
+    animTop.remove();
+    const animBot = document.createElement('div');
+    animBot.className = 'fc-panel fc-panel-bottom fc-anim fc-anim-bottom';
+    animBot.innerHTML = `<div class="fc-num">${newVal}</div>`;
+    card.appendChild(animBot);
+    setTimeout(() => {
+      animBot.remove();
+      card.querySelector('.fc-static-bot .fc-num').textContent = newVal;
+    }, 300);
+  }, 280);
+}
+
+function updateTitle() {
+  const m = String(Math.floor(pRemaining / 60)).padStart(2, '0');
+  const s = String(pRemaining % 60).padStart(2, '0');
+  document.title = pRunning ? `${m}:${s} — ProduceProductivity` : 'ProduceProductivity';
+}
+
+function renderRing() { renderClock(); }
+
+function renderDots() {
+  const wrap = document.getElementById('pomoDots');
+  wrap.innerHTML = '';
+  for (let i = 0; i < 4; i++) {
+    const d = document.createElement('div');
+    d.className = 'pomo-dot' + (i < pSessionsToday.count % 4 || (pSessionsToday.count > 0 && pSessionsToday.count % 4 === 0 && i < 4) ? ' done' : '');
+    if (pSessionsToday.count % 4 === 0 && pSessionsToday.count > 0) d.className = 'pomo-dot done';
+    wrap.appendChild(d);
+  }
+  // correct dots
+  wrap.innerHTML = '';
+  const n = pSessionsToday.count % 4 === 0 && pSessionsToday.count > 0 ? 4 : pSessionsToday.count % 4;
+  for (let i = 0; i < 4; i++) {
+    const d = document.createElement('div');
+    d.className = 'pomo-dot' + (i < n ? ' done' : '');
+    wrap.appendChild(d);
+  }
+}
+
+function updatePomoCurrentTask() {
+  const el = document.getElementById('pomoCurrentTask');
+  if (currentTaskId) {
+    const t = tasks.find(x => x.id === currentTaskId);
+    if (t && !t.done) {
+      el.textContent = '🍅 ' + t.text;
+      el.classList.add('has-task');
+      return;
+    }
+  }
+  el.textContent = 'No task selected — pick one from Tasks';
+  el.classList.remove('has-task');
+  currentTaskId = null;
+}
+
+// ─────────────────────────────────────────
+//  Tasks
+// ─────────────────────────────────────────
+function addTask() {
+  const input = document.getElementById('taskInput');
+  const text  = input.value.trim();
+  if (!text) return;
+  tasks.unshift({ id: uid(), text, priority: document.getElementById('taskPriority').value, done: false, createdAt: Date.now() });
+  save(ukey('ff_tasks'), tasks);
+  input.value = '';
+  renderTasks();
+  updateSidebar();
+}
+
+function toggleTask(id) {
+  const t = tasks.find(x => x.id === id);
+  if (!t) return;
+  t.done = !t.done;
+  if (t.done) {
+    stats.totalTasksDone++;
+    save(ukey('ff_stats'), stats);
+    showToast('Task complete! 🌿');
+    setTimeout(() => showGardenChoice({
+      icon: '🌱',
+      title: 'Task done!',
+      text: 'Head to the garden and pick a fresh ingredient as your reward.',
+      picks: 1,
+    }), 800);
+  }
+  save(ukey('ff_tasks'), tasks);
+  renderTasks();
+  updateSidebar();
+}
+
+function deleteTask(id) {
+  tasks = tasks.filter(x => x.id !== id);
+  save(ukey('ff_tasks'), tasks);
+  if (currentTaskId === id) { currentTaskId = null; updatePomoCurrentTask(); }
+  renderTasks();
+  updateSidebar();
+}
+
+function focusTask(id) {
+  currentTaskId = id;
+  updatePomoCurrentTask();
+  showPanel('pomodoro', document.querySelectorAll('nav a')[0]);
+  showToast('Task set — start your session!');
+}
+
+function setFilter(f, el) {
+  currentFilter = f;
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  el.classList.add('active');
+  renderTasks();
+}
+
+function renderTasks() {
+  const list = document.getElementById('taskList');
+  let filtered = tasks;
+  if (currentFilter === 'active') filtered = tasks.filter(t => !t.done);
+  else if (currentFilter === 'done') filtered = tasks.filter(t => t.done);
+  else if (currentFilter === 'high') filtered = tasks.filter(t => t.priority === 'high');
+
+  if (!filtered.length) {
+    list.innerHTML = `<div class="empty-state"><div class="emoji">🍕</div>No tasks here — ${currentFilter === 'done' ? 'keep going!' : 'add something above'}</div>`;
+    return;
+  }
+
+  list.innerHTML = filtered.map(t => `
+    <div class="task-item ${t.done ? 'done' : ''}">
+      <div class="task-check ${t.done ? 'checked' : ''}" onclick="toggleTask('${t.id}')"></div>
+      <div class="priority-dot ${t.priority}"></div>
+      <div class="task-text">${escHtml(t.text)}</div>
+      <div class="task-meta">
+        <span class="tag ${t.priority}">${t.priority}</span>
+        ${!t.done ? `<button class="task-pomo-btn" onclick="focusTask('${t.id}')" title="Focus on this task">🍅</button>` : ''}
+        <button class="task-del-btn" onclick="deleteTask('${t.id}')" title="Delete">✕</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+function escHtml(s) { return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+// ─────────────────────────────────────────
+//  Habits
+// ─────────────────────────────────────────
+function addHabit() {
+  const name  = document.getElementById('habitInput').value.trim();
+  const emoji = document.getElementById('habitEmoji').value.trim() || '🍓';
+  if (!name) return;
+  habits.push({ id: uid(), name, emoji, streak: 0, doneToday: false, lastDate: '' });
+  save(ukey('ff_habits'), habits);
+  document.getElementById('habitInput').value = '';
+  document.getElementById('habitEmoji').value = '';
+  renderHabits();
+}
+
+function toggleHabit(id) {
+  const h = habits.find(x => x.id === id);
+  if (!h) return;
+  const today = new Date().toDateString();
+  if (h.doneToday && h.lastDate === today) {
+    h.doneToday = false;
+    h.streak = Math.max(0, h.streak - 1);
+  } else {
+    h.doneToday = true;
+    h.lastDate = today;
+    h.streak++;
+  }
+  save(ukey('ff_habits'), habits);
+  renderHabits();
+  if (h.doneToday) showToast(`${h.emoji} ${h.name} — great work!`);
+}
+
+function renderHabits() {
+  const grid = document.getElementById('habitGrid');
+  if (!habits.length) {
+    grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1"><div class="emoji">🥦</div>No habits yet — add one above</div>`;
+    return;
+  }
+  grid.innerHTML = habits.map(h => `
+    <div class="habit-card ${h.doneToday ? 'done' : ''}" onclick="toggleHabit('${h.id}')">
+      <div class="habit-emoji">${h.emoji}</div>
+      <div class="habit-name">${escHtml(h.name)}</div>
+      <div class="habit-streak"><span class="fire">🌶️</span> ${h.streak} day streak</div>
+      ${h.doneToday ? '<div style="font-size:11px;color:var(--green);margin-top:6px">✓ Done today!</div>' : ''}
+    </div>
+  `).join('');
+}
+
+// ─────────────────────────────────────────
+//  Stats
+// ─────────────────────────────────────────
+function renderStats() {
+  document.getElementById('stat-hours').textContent  = (stats.totalMinutes / 60).toFixed(1);
+  document.getElementById('stat-sessions').textContent = stats.totalSessions;
+  document.getElementById('stat-tasks').textContent   = stats.totalTasksDone;
+
+  const maxStreak = Math.max(...habits.map(h => h.streak), 0);
+  document.getElementById('stat-streak').textContent  = maxStreak;
+
+  // Heatmap
+  const row = document.getElementById('heatmapRow');
+  row.innerHTML = '';
+  for (let i = 59; i >= 0; i--) {
+    const d = new Date(); d.setDate(d.getDate() - i);
+    const key = d.toISOString().slice(0,10);
+    const mins = stats.history[key] || 0;
+    let level = mins > 100 ? 'l4' : mins > 50 ? 'l3' : mins > 25 ? 'l2' : mins > 0 ? 'l1' : '';
+    const cell = document.createElement('div');
+    cell.className = 'heatmap-cell ' + level;
+    cell.title = key + ': ' + mins + 'min';
+    row.appendChild(cell);
+  }
+
+  // Priority bars
+  const priorities = ['high', 'medium', 'low'];
+  const bars = document.getElementById('priorityBars');
+  bars.innerHTML = '';
+  priorities.forEach(p => {
+    const all  = tasks.filter(t => t.priority === p).length;
+    const done = tasks.filter(t => t.priority === p && t.done).length;
+    const pct  = all ? Math.round((done / all) * 100) : 0;
+    bars.innerHTML += `
+      <div class="progress-bar-wrap">
+        <div class="progress-bar-label">
+          <span class="name">${p.charAt(0).toUpperCase() + p.slice(1)} priority</span>
+          <span class="pct">${done}/${all} (${pct}%)</span>
+        </div>
+        <div class="progress-bar-bg"><div class="progress-bar-fill" style="width:${pct}%"></div></div>
+      </div>
+    `;
+  });
+}
+
+// ─────────────────────────────────────────
+//  Sidebar
+// ─────────────────────────────────────────
+function updateSidebar() {
+  const mins = (pSessionsToday.count * 25);
+  document.getElementById('side-focus').textContent    = mins >= 60 ? (mins/60).toFixed(1)+'h' : mins+'m';
+  document.getElementById('side-sessions').textContent = pSessionsToday.count + ' sessions';
+
+  const done  = tasks.filter(t => t.done).length;
+  const total = tasks.length;
+  document.getElementById('side-tasks').textContent    = done;
+  document.getElementById('side-tasks-pct').textContent = total ? Math.round((done/total)*100)+'%' : '0%';
+}
+
+// ─────────────────────────────────────────
+//  Quotes
+// ─────────────────────────────────────────
+const QUOTES = [
+  { text: "The secret of getting ahead is getting started.", author: "Mark Twain" },
+  { text: "It always seems impossible until it's done.", author: "Nelson Mandela" },
+  { text: "Don't watch the clock; do what it does. Keep going.", author: "Sam Levenson" },
+  { text: "Focus on being productive instead of busy.", author: "Tim Ferriss" },
+  { text: "You don't have to be great to start, but you have to start to be great.", author: "Zig Ziglar" },
+  { text: "The way to get started is to quit talking and begin doing.", author: "Walt Disney" },
+  { text: "Time is what we want most, but what we use worst.", author: "William Penn" },
+  { text: "Eat a live frog first thing in the morning and nothing worse will happen to you the rest of the day.", author: "Mark Twain" },
+  { text: "Energy and persistence conquer all things.", author: "Benjamin Franklin" },
+  { text: "Small progress is still progress.", author: "Unknown" },
+];
+
+function rotateQuote() {
+  const q = QUOTES[Math.floor(Math.random() * QUOTES.length)];
+  document.getElementById('quoteBox').childNodes[0].nodeValue = '"' + q.text + '"';
+  document.getElementById('quoteAuthor').textContent = '— ' + q.author;
+}
+
+// ─────────────────────────────────────────
+//  Date display
+// ─────────────────────────────────────────
+function updateDate() {
+  const d = new Date();
+  document.getElementById('dateDisplay').textContent = d.toLocaleDateString('en-US', { weekday:'long', month:'long', day:'numeric' });
+}
+
+// ─────────────────────────────────────────
+//  Reset Day
+// ─────────────────────────────────────────
+function resetDay() {
+  if (!confirm('Reset today\'s progress? (habits & produce sessions will clear)')) return;
+  habits.forEach(h => { h.doneToday = false; });
+  save(ukey('ff_habits'), habits);
+  pSessionsToday = { date: TODAY, count: 0 };
+  save(ukey('ff_pomo_sessions_today'), pSessionsToday);
+  renderHabits();
+  renderDots();
+  updateSidebar();
+  showToast('Day reset — fresh start!');
+}
+
+// ─────────────────────────────────────────
+//  Toast
+// ─────────────────────────────────────────
+let toastTimer;
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('show'), 2800);
+}
+
+// ─────────────────────────────────────────
+//  Produce Timer — rotating story lines
+// ─────────────────────────────────────────
+const PRODUCE_LINES = [
+  "Good. You're here. The tomatoes won't pick themselves — set your timer and let's get to work.",
+  "The kitchen doesn't wait. Neither should you. Pick your time and press play.",
+  "Every great chef starts with a single cut. Start your session and make it count.",
+  "The secret ingredient? Showing up. Set your timer and prove you're here.",
+  "A dish left unseasoned is a session left unstarted. Ready when you are.",
+  "Today's special: deep focus, served fresh. The timer is waiting.",
+  "The fire's lit. Your mise en place is set. What are we cooking today?",
+  "Even a sardine needs time to marinate. Give your work the time it deserves.",
+  "No shortcuts in a good kitchen. No shortcuts in a good session. Let's begin.",
+  "The timer is your sous chef — patient, precise, and always ready. Your move.",
+  "Hungry for progress? A session well-timed is a meal well-made.",
+  "The clock doesn't cook the food — you do. But it sure helps. Start when ready.",
+  "Another round. Another chance to make something worth tasting.",
+  "The produce won't stay fresh forever. Neither will today. Use it well.",
+  "A focused mind is the sharpest knife in the kitchen. Sharpen yours — start now.",
+];
+let lastProduceLine = -1;
+
+function getProduceLine() {
+  let idx;
+  do { idx = Math.floor(Math.random() * PRODUCE_LINES.length); } while (idx === lastProduceLine);
+  lastProduceLine = idx;
+  return PRODUCE_LINES[idx];
+}
+
+// ─────────────────────────────────────────
+//  Typewriter
+// ─────────────────────────────────────────
+const typeTimers = new WeakMap();
+
+function typeWrite(el, speed = 28) {
+  if (!el) return;
+  const text = el.dataset.story || '';
+  if (typeTimers.has(el)) clearTimeout(typeTimers.get(el));
+  el.textContent = '';
+  let i = 0;
+  const tick = () => {
+    if (i < text.length) {
+      el.textContent += text[i++];
+      typeTimers.set(el, setTimeout(tick, speed));
+    }
+  };
+  tick();
+}
+
+function typeActivePanel() {
+  document.querySelectorAll('.panel.active .story-text').forEach(el => typeWrite(el));
+}
+
+// ─────────────────────────────────────────
+//  Intro Story
+// ─────────────────────────────────────────
+const INTRO_STORY = [
+  { text: "Somewhere in the Mediterranean, a kitchen waits.", style: "dim",  pause: 1100 },
+  { text: "Its shelves are bare. Its fire is unlit.",         style: "dim",  pause: 950  },
+  { text: "But the produce is fresh.",                        style: "bold", pause: 1200 },
+  { text: "Every great chef started exactly where you are now —", style: "", pause: 950 },
+  { text: "with nothing but a timer and a reason to begin.",  style: "dim",  pause: 1000 },
+  { text: "Here, focus is your ingredient.",                  style: "bold", pause: 1100 },
+  { text: "Finish a session. Earn something real.",           style: "",     pause: 900  },
+  { text: "Harvest from the garden. Fill your recipe.",       style: "",     pause: 900  },
+  { text: "One dish at a time, you build a menu.",            style: "dim",  pause: 1000 },
+  { text: "One menu at a time, you open your doors.",         style: "dim",  pause: 1100 },
+  { text: "This is ProduceProductivity.",                     style: "bold", pause: 1200 },
+  { text: "Are you ready to cook?",                           style: "",     pause: 600  },
+];
+
+let introActive = false;
+let introLineIdx = 0;
+let introTyping  = false;
+
+function showIntro() {
+  introLineIdx = 0;
+  introActive  = true;
+  document.getElementById('introOverlay').style.display = 'flex';
+  renderIntroDots();
+  showIntroLine();
+}
+
+function renderIntroDots() {
+  const wrap = document.getElementById('introDots');
+  wrap.innerHTML = INTRO_STORY.map((_, i) => {
+    const cls = i < introLineIdx ? 'past' : i === introLineIdx ? 'active' : '';
+    return `<div class="intro-dot ${cls}"></div>`;
+  }).join('');
+}
+
+function showIntroLine() {
+  const btn       = document.getElementById('introNextBtn');
+  const container = document.getElementById('introLines');
+  const scene     = INTRO_STORY[introLineIdx];
+
+  btn.classList.remove('visible');
+  container.innerHTML = '';
+
+  const line = document.createElement('div');
+  line.className = 'intro-line' + (scene.style ? ' ' + scene.style : '');
+  container.appendChild(line);
+
+  renderIntroDots();
+  introTyping = true;
+
+  let i = 0;
+  const tick = () => {
+    if (!introActive) return;
+    if (i < scene.text.length) {
+      line.textContent += scene.text[i++];
+      setTimeout(tick, 32);
+    } else {
+      introTyping = false;
+      const isLast = introLineIdx >= INTRO_STORY.length - 1;
+      btn.textContent = isLast ? 'Enter the Kitchen →' : 'Next →';
+      btn.classList.add('visible');
+    }
+  };
+  tick();
+}
+
+function introNext() {
+  if (introTyping) return; // wait for typing to finish
+  if (introLineIdx >= INTRO_STORY.length - 1) {
+    dismissIntro();
+  } else {
+    introLineIdx++;
+    showIntroLine();
+  }
+}
+
+function dismissIntro() {
+  introActive = false;
+  document.getElementById('introOverlay').style.display = 'none';
+  if (currentUser) localStorage.setItem('ff_intro_seen_' + currentUser, '1');
+  setTimeout(typeActivePanel, 200);
+}
+
+// ─────────────────────────────────────────
+//  Auth
+// ─────────────────────────────────────────
+let accounts    = load('ff_accounts', {});
+let currentUser = load('ff_current_user', null);
+let loginMode   = 'signin';
+
+function hashPw(pw) {
+  let h = 5381;
+  for (let i = 0; i < pw.length; i++) { h = ((h << 5) + h) + pw.charCodeAt(i); h = h & h; }
+  return h.toString(36);
+}
+
+function switchLoginTab(mode, el) {
+  loginMode = mode;
+  document.querySelectorAll('.login-tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('loginSubmitBtn').textContent = mode === 'signin' ? 'Sign In' : 'Create Account';
+  document.getElementById('loginError').style.display = 'none';
+}
+
+function submitLogin() {
+  const username = document.getElementById('loginUsername').value.trim();
+  const password = document.getElementById('loginPassword').value;
+  const errEl    = document.getElementById('loginError');
+
+  const fail = (msg) => { errEl.textContent = msg; errEl.style.display = 'block'; };
+
+  if (!username) return fail('Please enter a username.');
+  if (!password) return fail('Please enter a password.');
+
+  let isNewUser = false;
+  if (loginMode === 'register') {
+    if (password.length < 4) return fail('Password must be at least 4 characters.');
+    if (accounts[username])   return fail('Username already taken — try signing in.');
+    accounts[username] = hashPw(password);
+    save('ff_accounts', accounts);
+    isNewUser = true;
+  } else {
+    if (!accounts[username] || accounts[username] !== hashPw(password))
+      return fail('Incorrect username or password.');
+  }
+
+  currentUser = username;
+  save('ff_current_user', currentUser);
+  if (!isNewUser) localStorage.setItem('ff_intro_seen_' + currentUser, '1');
+  enterApp();
+}
+
+function enterApp() {
+  document.getElementById('loginOverlay').style.display = 'none';
+  document.getElementById('userDisplay').textContent    = currentUser;
+  document.getElementById('userAvatar').textContent     = currentUser[0].toUpperCase();
+  document.getElementById('userBadge').style.display    = 'flex';
+  document.getElementById('logoutBtn').style.display    = 'inline-block';
+  loadUserData();
+  if (localStorage.getItem('ff_intro_seen_' + currentUser)) {
+    setTimeout(typeActivePanel, 200);
+  } else {
+    showIntro();
+  }
+}
+
+function logout() {
+  currentUser = null;
+  save('ff_current_user', null);
+  document.getElementById('loginOverlay').style.display = 'flex';
+  document.getElementById('userBadge').style.display    = 'none';
+  document.getElementById('logoutBtn').style.display    = 'none';
+  document.getElementById('creatorGardenTab').style.display = 'none';
+  document.getElementById('loginUsername').value = '';
+  document.getElementById('loginPassword').value = '';
+  document.getElementById('loginError').style.display = 'none';
+  setTimeout(() => typeWrite(document.querySelector('.login-subtitle.story-text')), 100);
+}
+
+// ─────────────────────────────────────────
+//  Creator Portal
+// ─────────────────────────────────────────
+const CREATOR_KEY = 'ff_creator_pin';
+let creatorPortalOpen = false;
+
+function toggleCreatorPortal() {
+  creatorPortalOpen = !creatorPortalOpen;
+  const portal = document.getElementById('creatorPortal');
+  portal.style.display = creatorPortalOpen ? 'block' : 'none';
+  if (creatorPortalOpen) {
+    const hasPin = !!localStorage.getItem(CREATOR_KEY);
+    document.getElementById('creatorPinLabel').textContent = hasPin ? 'Creator PIN' : 'Set a Creator PIN';
+    document.getElementById('creatorPin2Wrap').style.display = hasPin ? 'none' : 'block';
+    document.getElementById('creatorSubmitBtn').textContent = hasPin ? 'Enter as Creator' : 'Save PIN & Enter';
+    document.getElementById('creatorPin').value = '';
+    document.getElementById('creatorPin').focus();
+  }
+}
+
+function submitCreator() {
+  const pin  = document.getElementById('creatorPin').value.trim();
+  const errEl = document.getElementById('creatorError');
+  const fail  = (msg) => { errEl.textContent = msg; errEl.style.display = 'block'; };
+
+  if (!pin) return fail('Please enter a PIN.');
+  errEl.style.display = 'none';
+
+  const saved = localStorage.getItem(CREATOR_KEY);
+
+  if (!saved) {
+    // First time — set PIN
+    const pin2 = document.getElementById('creatorPin2').value.trim();
+    if (pin.length < 4) return fail('PIN must be at least 4 digits.');
+    if (pin !== pin2)   return fail('PINs do not match.');
+    localStorage.setItem(CREATOR_KEY, hashPw(pin));
+    enterAsCreator();
+  } else {
+    if (hashPw(pin) !== saved) return fail('Incorrect PIN.');
+    enterAsCreator();
+  }
+}
+
+function enterAsCreator() {
+  currentUser = 'Creator';
+  save('ff_current_user', currentUser);
+  document.getElementById('loginOverlay').style.display = 'none';
+  document.getElementById('userDisplay').textContent    = 'Creator';
+  document.getElementById('userAvatar').textContent     = '👑';
+  document.getElementById('userBadge').style.display    = 'flex';
+  document.getElementById('logoutBtn').style.display    = 'inline-block';
+  document.getElementById('creatorGardenTab').style.display = 'flex';
+  loadUserData();
+  setTimeout(typeActivePanel, 200);
+}
+
+function resetCreatorPin() {
+  if (!confirm('Reset your Creator PIN? You will need to set a new one.')) return;
+  localStorage.removeItem(CREATOR_KEY);
+  showToast('Creator PIN removed.');
+}
+
+// ─────────────────────────────────────────
+//  Music
+// ─────────────────────────────────────────
+function connectMusic() {
+  const raw = document.getElementById('musicUrl').value.trim();
+  if (!raw) return;
+
+  // Spotify: track / playlist / album / artist / episode
+  const spotify = raw.match(/open\.spotify\.com\/(track|playlist|album|artist|episode)\/([A-Za-z0-9]+)/);
+  if (spotify) {
+    renderEmbedPlayer(
+      `https://open.spotify.com/embed/${spotify[1]}/${spotify[2]}?utm_source=generator&theme=0`,
+      spotify[1] === 'track' || spotify[1] === 'episode' ? 80 : 152
+    );
+    return;
+  }
+
+  // YouTube: watch?v= or youtu.be or playlist
+  const ytVideo = raw.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([A-Za-z0-9_-]{11})/);
+  if (ytVideo) {
+    const listMatch = raw.match(/[?&]list=([A-Za-z0-9_-]+)/);
+    const listParam = listMatch ? `&list=${listMatch[1]}` : '';
+    renderEmbedPlayer(
+      `https://www.youtube.com/embed/${ytVideo[1]}?autoplay=1${listParam}`,
+      140
+    );
+    return;
+  }
+  const ytList = raw.match(/youtube\.com\/.*[?&]list=([A-Za-z0-9_-]+)/);
+  if (ytList) {
+    renderEmbedPlayer(
+      `https://www.youtube.com/embed/videoseries?list=${ytList[1]}&autoplay=1`,
+      140
+    );
+    return;
+  }
+
+  // SoundCloud
+  if (raw.includes('soundcloud.com')) {
+    renderEmbedPlayer(
+      `https://w.soundcloud.com/player/?url=${encodeURIComponent(raw)}&auto_play=true&hide_related=true&show_comments=false&show_user=false&visual=false&color=%23b5635a`,
+      110
+    );
+    return;
+  }
+
+  showToast('Paste a Spotify, YouTube, or SoundCloud link');
+}
+
+function renderEmbedPlayer(src, height) {
+  const wrap = document.getElementById('musicPlayerWrap');
+  wrap.innerHTML = `
+    <iframe src="${src}" height="${height}" frameborder="0"
+      allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
+      allowfullscreen loading="lazy"></iframe>
+    <div class="music-disconnect" onclick="disconnectMusic()">✕ disconnect</div>`;
+  document.getElementById('musicUrl').value = '';
+  showToast('Music connected!');
+}
+
+function loadLocalMusic(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const src = URL.createObjectURL(file);
+  const wrap = document.getElementById('musicPlayerWrap');
+  wrap.innerHTML = `
+    <audio controls autoplay>
+      <source src="${src}" type="${escHtml(file.type)}">
+    </audio>
+    <div class="music-disconnect" onclick="disconnectMusic()">✕ disconnect</div>`;
+  showToast(`Playing: ${escHtml(file.name)}`);
+  input.value = '';
+}
+
+function disconnectMusic() {
+  document.getElementById('musicPlayerWrap').innerHTML = '';
+  showToast('Music disconnected');
+}
+
+// ─────────────────────────────────────────
+//  Garden
+// ─────────────────────────────────────────
+const GARDEN_PLANTS = [
+  { name: 'Tomato', emoji: '🍅' }, { name: 'Cucumber', emoji: '🥒' },
+  { name: 'Onion', emoji: '🧅' },  { name: 'Spinach', emoji: '🥬' },
+  { name: 'Garlic', emoji: '🧄' },  { name: 'Lemon', emoji: '🍋' },
+  { name: 'Eggplant', emoji: '🍆' },{ name: 'Herbs', emoji: '🌿' },
+  { name: 'Olives', emoji: '🫒' },  { name: 'Pepper', emoji: '🫑' },
+  { name: 'Carrot', emoji: '🥕' },  { name: 'Pita', emoji: '🫓' },
+  { name: 'Feta', emoji: '🧀' },    { name: 'Lamb', emoji: '🥩' },
+  { name: 'Honey', emoji: '🍯' },   { name: 'Walnuts', emoji: '🥜' },
+];
+
+let gardenPicksLeft  = 0;
+let gardenHarvested  = [];
+let gardenActivePlants = [];
+
+function showGardenChoice({ icon = '🌿', title, text, picks }) {
+  gardenPicksLeft = picks;
+  gardenHarvested = [];
+  document.getElementById('gardenChoiceIcon').textContent  = icon;
+  document.getElementById('gardenChoiceTitle').textContent = title;
+  document.getElementById('gardenChoiceText').textContent  = text;
+  document.getElementById('gardenChoiceModal').style.display = 'flex';
+}
+
+function closeGardenChoice() {
+  document.getElementById('gardenChoiceModal').style.display = 'none';
+}
+
+function openCreatorGarden() {
+  gardenPicksLeft = 3;
+  openGarden();
+}
+
+function openGarden() {
+  closeGardenChoice();
+  gardenHarvested = [];
+  document.getElementById('basketItems').innerHTML = '';
+
+  const plants = [];
+  if (kitchen.dishIdx < DISHES.length) {
+    const dish = DISHES[kitchen.dishIdx];
+    dish.ingredients.forEach((ing, i) => {
+      if (!kitchen.earned.includes(i)) {
+        plants.push({ name: ing.name, emoji: ing.emoji, recipeIdx: i });
+      }
+    });
+  }
+
+  // Pad with random wild plants up to 8
+  const usedEmojis = new Set(plants.map(p => p.emoji));
+  const extras = GARDEN_PLANTS.filter(p => !usedEmojis.has(p.emoji))
+    .sort(() => Math.random() - 0.5);
+  while (plants.length < 8 && extras.length > 0) {
+    plants.push(extras.shift());
+  }
+
+  gardenActivePlants = plants;
+  renderGardenPlots();
+  updateGardenPickCount();
+  document.getElementById('gardenOverlay').style.display = 'flex';
+}
+
+function renderGardenPlots() {
+  const wrap = document.getElementById('gardenPlots');
+  wrap.innerHTML = gardenActivePlants.map((p, i) =>
+    `<div class="plant-card" id="plant${i}" onclick="pickPlant(${i})">
+      <div class="plant-emoji-big">${p.emoji}</div>
+      <div class="plant-card-name">${p.name}</div>
+      <div class="plant-card-hint">Tap to harvest</div>
+      <div class="plant-soil">🪱</div>
+    </div>`
+  ).join('');
+}
+
+function pickPlant(idx) {
+  if (gardenPicksLeft <= 0) return;
+  const plant = gardenActivePlants[idx];
+  const card  = document.getElementById('plant' + idx);
+  if (!card || card.classList.contains('picked') || card.classList.contains('picking')) return;
+
+  // Animate the card
+  card.classList.add('picking');
+  gardenPicksLeft--;
+  gardenHarvested.push(plant);
+  updateGardenPickCount();
+
+  // Add to basket after animation
+  setTimeout(() => {
+    card.classList.remove('picking');
+    card.classList.add('picked', 'empty');
+    card.innerHTML = '<div style="font-size:28px;opacity:0.3">🌱</div><div class="plant-card-name" style="color:#aaa">Harvested</div>';
+
+    const item = document.createElement('div');
+    item.className = 'basket-item';
+    item.textContent = plant.emoji;
+    item.title = plant.name;
+    document.getElementById('basketItems').appendChild(item);
+
+    // Earn the specific recipe ingredient if this plant is part of the current dish
+    if (plant.recipeIdx !== undefined) {
+      earnSpecificIngredient(plant.recipeIdx);
+    }
+
+    if (gardenPicksLeft === 0) {
+      setTimeout(() => showToast('Basket full — head back when ready!'), 400);
+    }
+  }, 480);
+}
+
+function updateGardenPickCount() {
+  document.getElementById('gardenPickCount').textContent = gardenPicksLeft;
+  document.getElementById('gardenPickS').textContent = gardenPicksLeft === 1 ? '' : 's';
+}
+
+function leaveGarden() {
+  document.getElementById('gardenOverlay').style.display = 'none';
+  if (gardenHarvested.length > 0) {
+    showToast(`You harvested ${gardenHarvested.length} ingredient${gardenHarvested.length > 1 ? 's' : ''}! 🧺`);
+  }
+}
+
+// ─────────────────────────────────────────
+//  Kitchen Game
+// ─────────────────────────────────────────
+const DISHES = [
+  { name: 'Greek Salad', emoji: '🥗', desc: 'A fresh Mediterranean classic to start', ingredients: [
+    { name: 'Tomato', emoji: '🍅' }, { name: 'Cucumber', emoji: '🥒' },
+    { name: 'Olives', emoji: '🫒' }, { name: 'Feta', emoji: '🧀' },
+    { name: 'Red Onion', emoji: '🧅' }
+  ]},
+  { name: 'Moussaka', emoji: '🍲', desc: 'Layers of eggplant and rich meat sauce', ingredients: [
+    { name: 'Eggplant', emoji: '🍆' }, { name: 'Lamb', emoji: '🥩' },
+    { name: 'Tomato', emoji: '🍅' }, { name: 'Onion', emoji: '🧅' },
+    { name: 'Egg', emoji: '🥚' }, { name: 'Béchamel', emoji: '🥛' }
+  ]},
+  { name: 'Spanakopita', emoji: '🥧', desc: 'Flaky spinach and feta phyllo pie', ingredients: [
+    { name: 'Spinach', emoji: '🥬' }, { name: 'Feta', emoji: '🧀' },
+    { name: 'Phyllo', emoji: '🫓' }, { name: 'Onion', emoji: '🧅' },
+    { name: 'Olive Oil', emoji: '🫒' }
+  ]},
+  { name: 'Souvlaki', emoji: '🍢', desc: 'Grilled skewers with herbs and pita', ingredients: [
+    { name: 'Chicken', emoji: '🍗' }, { name: 'Olive Oil', emoji: '🫒' },
+    { name: 'Lemon', emoji: '🍋' }, { name: 'Oregano', emoji: '🌿' },
+    { name: 'Pita', emoji: '🫓' }
+  ]},
+  { name: 'Baklava', emoji: '🍯', desc: 'Sweet honey and walnut layered pastry', ingredients: [
+    { name: 'Phyllo', emoji: '🫓' }, { name: 'Walnuts', emoji: '🥜' },
+    { name: 'Honey', emoji: '🍯' }, { name: 'Butter', emoji: '🧈' },
+    { name: 'Cinnamon', emoji: '🌰' }
+  ]}
+];
+
+const RESTAURANT_STAGES = [
+  { emoji: '🏚️', label: 'Empty Building' },
+  { emoji: '🔧', label: 'Renovating…' },
+  { emoji: '🏠', label: 'Kitchen Ready' },
+  { emoji: '🍽️', label: 'Soft Opening' },
+  { emoji: '🏪', label: 'Grand Opening!' },
+];
+
+let kitchen = { dishIdx: 0, earned: [], completed: [] };
+let lastEarnedIdx = -1;
+
+function earnSpecificIngredient(idx) {
+  if (kitchen.dishIdx >= DISHES.length) return;
+  const dish = DISHES[kitchen.dishIdx];
+  if (kitchen.earned.includes(idx)) return;
+  kitchen.earned.push(idx);
+  save(ukey('ff_kitchen'), kitchen);
+  lastEarnedIdx = idx;
+
+  const ing = dish.ingredients[idx];
+  setTimeout(() => {
+    showToast(`Ingredient earned: ${ing.emoji} ${ing.name}!`);
+    renderKitchen();
+
+    if (kitchen.earned.length >= dish.ingredients.length) {
+      setTimeout(() => {
+        kitchen.completed.push(kitchen.dishIdx);
+        kitchen.dishIdx++;
+        kitchen.earned = [];
+        lastEarnedIdx = -1;
+        save(ukey('ff_kitchen'), kitchen);
+        if (kitchen.dishIdx >= DISHES.length) {
+          showToast('🎉 Grand Opening! Your restaurant is open!');
+        } else {
+          showToast(`🍽️ ${dish.name} complete! New recipe unlocked!`);
+        }
+        renderKitchen();
+      }, 1200);
+    }
+  }, 800);
+}
+
+function earnIngredient() {
+  if (kitchen.dishIdx >= DISHES.length) return;
+  const dish = DISHES[kitchen.dishIdx];
+  const idx = dish.ingredients.findIndex((_, i) => !kitchen.earned.includes(i));
+  if (idx === -1) return;
+  earnSpecificIngredient(idx);
+}
+
+function renderKitchen() {
+  renderKitchenRecipe();
+  renderRestaurantProgress();
+}
+
+function renderKitchenRecipe() {
+  const card = document.getElementById('kitchenRecipeCard');
+  if (!card) return;
+
+  if (kitchen.dishIdx >= DISHES.length) {
+    card.innerHTML = `
+      <div class="kitchen-complete">
+        <div style="font-size:64px">🏪✨</div>
+        <div class="dish-name" style="font-size:22px">Grand Opening!</div>
+        <p class="dish-desc">You've mastered all 5 dishes. Your restaurant is the talk of the town!</p>
+        <button class="btn-add" style="margin-top:8px" onclick="resetKitchen()">Start a New Menu</button>
+      </div>`;
+    return;
+  }
+
+  const dish = DISHES[kitchen.dishIdx];
+  const nextIng = dish.ingredients.find((_, i) => !kitchen.earned.includes(i));
+
+  const slots = dish.ingredients.map((ing, i) => {
+    const isEarned = kitchen.earned.includes(i);
+    const isJustEarned = i === lastEarnedIdx;
+    return `<div class="ing-slot ${isEarned ? 'earned' : ''} ${isJustEarned ? 'just-earned' : ''}">
+      ${isEarned
+        ? `<div class="ing-emoji">${ing.emoji}</div><div class="ing-name">${ing.name}</div>`
+        : `<div class="ing-unknown">?</div><div class="ing-name" style="color:var(--border)">???</div>`
+      }
+    </div>`;
+  }).join('');
+
+  card.innerHTML = `
+    <div class="kitchen-dish-header">
+      <div class="dish-big-emoji">${dish.emoji}</div>
+      <div>
+        <div class="dish-name">${dish.name}</div>
+        <div class="dish-desc">${dish.desc}</div>
+        ${nextIng ? `<div class="dish-next-hint">Next session unlocks: ${nextIng.emoji} ${nextIng.name}</div>` : ''}
+      </div>
+    </div>
+    <div class="ing-slots">${slots}</div>
+    <div class="kitchen-progress-text">
+      ${kitchen.earned.length === 0
+        ? 'Complete a focus session to earn your first ingredient!'
+        : kitchen.earned.length >= dish.ingredients.length
+          ? `All ingredients collected! Dish unlocked 🎉`
+          : `${kitchen.earned.length} of ${dish.ingredients.length} ingredients collected`
+      }
+    </div>`;
+}
+
+function renderRestaurantProgress() {
+  const el = document.getElementById('restaurantProgress');
+  if (!el) return;
+
+  const total = DISHES.length;
+  const done = kitchen.completed.length;
+  const pct = Math.round((done / total) * 100);
+  const stage = RESTAURANT_STAGES[Math.min(done, RESTAURANT_STAGES.length - 1)];
+
+  const menuItems = DISHES.map((d, i) => {
+    const isDone = kitchen.completed.includes(i);
+    const isCurrent = i === kitchen.dishIdx && !isDone;
+    const cls = isDone ? 'done' : isCurrent ? 'current' : 'locked';
+    const statusIcon = isDone ? '✓' : isCurrent ? '🍳' : '🔒';
+    return `<div class="menu-item ${cls}">
+      <span class="menu-emoji">${d.emoji}</span>
+      <span class="menu-name">${d.name}</span>
+      <span class="menu-status">${statusIcon}</span>
+    </div>`;
+  }).join('');
+
+  el.innerHTML = `
+    <div class="restaurant-building">${stage.emoji}</div>
+    <div style="text-align:center;font-size:12px;color:var(--muted);margin-bottom:12px">${stage.label}</div>
+    <div class="progress-bar-wrap" style="margin-bottom:16px">
+      <div class="progress-bar-label">
+        <span class="name">Dishes mastered</span>
+        <span class="pct">${done} / ${total}</span>
+      </div>
+      <div class="progress-bar-bg"><div class="progress-bar-fill" style="width:${pct}%"></div></div>
+    </div>
+    <div class="menu-list">${menuItems}</div>`;
+}
+
+function resetKitchen() {
+  if (!confirm('Reset your restaurant progress?')) return;
+  kitchen = { dishIdx: 0, earned: [], completed: [] };
+  lastEarnedIdx = -1;
+  save(ukey('ff_kitchen'), kitchen);
+  renderKitchen();
+}
+
+function saveAllUserData() {
+  if (!currentUser) return;
+  save(ukey('ff_tasks'), tasks);
+  save(ukey('ff_habits'), habits);
+  save(ukey('ff_stats'), stats);
+  save(ukey('ff_pomo_sessions_today'), pSessionsToday);
+  save(ukey('ff_kitchen'), kitchen);
+}
+
+setInterval(saveAllUserData, 30000);
+document.addEventListener('visibilitychange', () => { if (document.hidden) saveAllUserData(); });
+window.addEventListener('beforeunload', saveAllUserData);
+
+// ─────────────────────────────────────────
+//  Init
+// ─────────────────────────────────────────
+updateDate();
+rotateQuote();
+setInterval(rotateQuote, 30000);
+applyMode('work');
+initClock();
+
+// Pre-seed creator PIN
+if (!localStorage.getItem(CREATOR_KEY)) {
+  localStorage.setItem(CREATOR_KEY, hashPw('2026'));
+}
+
+// Auth gate
+if (currentUser) {
+  const el = document.getElementById('produceSubtitle');
+  if (el) el.dataset.story = getProduceLine();
+  if (currentUser === 'Creator') {
+    enterAsCreator();
+  } else {
+    enterApp();
+  }
+} else {
+  document.getElementById('loginOverlay').style.display = 'flex';
+  // If creator PIN is set, auto-open the portal for quick access
+  if (localStorage.getItem(CREATOR_KEY)) {
+    setTimeout(() => toggleCreatorPortal(), 150);
+  }
+  setTimeout(() => {
+    typeWrite(document.querySelector('.login-subtitle.story-text'));
+  }, 200);
+}
+</script>
+</body>
+</html>
